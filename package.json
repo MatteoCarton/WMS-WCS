@@ -5,10 +5,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-  "dev": "tsx src/index.ts",
-  "build": "tsc",
-  "check": "tsc --noEmit"
-},
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "check": "tsc --noEmit",
+    "test": "tsx --test \"src/**/*.test.ts\""
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
