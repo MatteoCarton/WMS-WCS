@@ -1,9 +1,7 @@
 import type { Result } from "../domain/result.js";
 import { err, ok } from "../domain/result.js";
-import type { Field } from "./format.js";
+import type { Field, TelegramValues } from "./format.js";
 import { TERMINATOR } from "./format.js";
-
-export type TelegramValues = Readonly<Record<string, string>>;
 
 export type EncodeError =
   | { readonly kind: "missing"; readonly field: string }

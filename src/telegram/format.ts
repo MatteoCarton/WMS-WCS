@@ -6,6 +6,8 @@ export interface Field {
   readonly kind: FieldKind;
 }
 
+export type TelegramValues = Readonly<Record<string, string>>;
+
 export const TERMINATOR = "\r\n";
 
 export const moveFields: readonly Field[] = [
