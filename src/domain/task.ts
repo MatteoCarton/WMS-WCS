@@ -1,6 +1,10 @@
 import type { Lpn } from "./container.js";
 import type { LocationCode } from "./location.js";
 import type { OrderReference } from "./order.js";
+import type { Result } from "./result.js";
+import { ok } from "./result.js";
+import type { IllegalTransition, TransitionTable } from "./state-machine.js";
+import { transition } from "./state-machine.js";
 
 export type TaskId = string;
 
@@ -24,4 +28,21 @@ export interface Task {
   readonly orderReference: OrderReference | null;
   readonly attempts: number;
   readonly createdAt: Date;
+}
+
+export const taskTransitions: TransitionTable<TaskState> = {
+  created: ["sent", "failed"],
+  sent: ["accepted", "failed"],
+  accepted: ["running", "failed"],
+  running: ["done", "failed"],
+  done: [],
+  failed: [],
+};
+
+export function changeTaskState(
+  task: Task,
+  to: TaskState,
+): Result<Task, IllegalTransition<TaskState>> {
+  const next = transition(taskTransitions, task.state, to);
+  return next.ok ? ok({ ...task, state: next.value }) : next;
 }

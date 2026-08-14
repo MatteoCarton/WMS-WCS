@@ -9,3 +9,29 @@ export type {
   EventId,
   EventSource,
 } from "./event.js";
+export type {
+  Allocation,
+  AllocationPick,
+  PickCandidate,
+  PickStrategy,
+} from "./stock.js";
+export type { Result } from "./result.js";
+export type { IllegalTransition, TransitionTable } from "./state-machine.js";
+
+export { err, ok } from "./result.js";
+export {
+  allowedTargets,
+  canTransition,
+  isTerminal,
+  transition,
+} from "./state-machine.js";
+export {
+  allocate,
+  availableStock,
+  physicalStock,
+  pickCandidates,
+  reservedStock,
+} from "./stock.js";
+export { changeContainerState, containerTransitions } from "./container.js";
+export { changeOrderState, orderTransitions } from "./order.js";
+export { changeTaskState, taskTransitions } from "./task.js";
