@@ -32,8 +32,8 @@ export interface Task {
 
 export const taskTransitions: TransitionTable<TaskState> = {
   created: ["sent", "failed"],
-  sent: ["accepted", "failed"],
-  accepted: ["running", "failed"],
+  sent: ["accepted", "created", "failed"],
+  accepted: ["running", "done", "failed"],
   running: ["done", "failed"],
   done: [],
   failed: [],
