@@ -1,4 +1,5 @@
 import type { LocationCode } from "../domain/location.js";
+import { pad } from "../shared/pad.js";
 
 export const BAY_PITCH = 0.6;
 export const LEVEL_PITCH = 0.5;
@@ -29,10 +30,6 @@ const SIDES: readonly AisleSide[] = ["A", "B"];
 
 function metres(value: number): number {
   return Math.round(value * 1000) / 1000;
-}
-
-function pad(value: number, width: number): string {
-  return String(value).padStart(width, "0");
 }
 
 function range(count: number): readonly number[] {
@@ -70,6 +67,27 @@ export function buildLayout(addresses: readonly RackAddress[]): Layout {
     addresses.map((address) => [rackCode(address), rackPoint(address)]),
   );
 }
+
+const RACK_CODE = /^C(\d{2})-(\d{3})-(\d{2})-([AB])$/;
+
+export function parseRackCode(code: LocationCode): RackAddress | null {
+  const parts = RACK_CODE.exec(code);
+
+  if (parts === null) {
+    return null;
+  }
+
+  const [, aisle, bay, level, side] = parts;
+
+  return {
+    aisle: Number(aisle),
+    bay: Number(bay),
+    level: Number(level),
+    side: side as AisleSide,
+  };
+}
+
+export const AISLE_HEAD: Point = { x: 0, y: 0, z: 0 };
 
 export function horizontalDistance(from: Point, to: Point): number {
   return metres(Math.abs(to.x - from.x));

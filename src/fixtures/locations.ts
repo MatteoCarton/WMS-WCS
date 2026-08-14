@@ -1,8 +1,5 @@
 import type { Location, LocationZone } from "../domain/index.js";
-
-function pad(value: number, width: number): string {
-  return String(value).padStart(width, "0");
-}
+import { pad } from "../shared/pad.js";
 
 function location(
   zone: LocationZone,
