@@ -1,30 +1,48 @@
-import type { Container, Item, Order } from "./domain/index.js";
+import type { PickStrategy } from "./domain/index.js";
+import {
+  allocate,
+  availableStock,
+  physicalStock,
+  pickCandidates,
+  reservedStock,
+} from "./domain/index.js";
+import { containers } from "./fixtures/index.js";
 
-const item: Item = {
-  sku: "SNK-BLUE-42",
-  label: "Blue sneaker, size 42",
-  perishable: false,
-};
+function reportStock(sku: string): void {
+  const physical = physicalStock(containers, sku);
+  const reserved = reservedStock(containers, sku);
+  const available = availableStock(containers, sku);
 
-const container: Container = {
-  lpn: "BIN00123",
-  state: "in_stock",
-  locationCode: "A12-045-03-B",
-  contents: [
-    { sku: item.sku, quantity: 50, reservedQuantity: 12, expiryDate: null },
-  ],
-};
+  console.log(`${sku}`);
+  console.log(`  physical   ${physical}`);
+  console.log(`  reserved   ${reserved}`);
+  console.log(`  available  ${available}  (physical minus reserved and untouchable)`);
+  console.log("");
+}
 
-const order: Order = {
-  reference: "ORD-2026-0001",
-  customer: "Delhaize Mouscron",
-  createdAt: new Date("2026-08-13T09:00:00Z"),
-  state: "received",
-  lines: [{ sku: item.sku, requestedQuantity: 10, pickedQuantity: 0 }],
-};
+function reportStrategy(sku: string, strategy: PickStrategy): void {
+  console.log(`${sku}  ${strategy.toUpperCase()}`);
 
-console.log(`Item      ${item.sku} — ${item.label}`);
-console.log(
-  `Container ${container.lpn} @ ${container.locationCode ?? "in motion"} — ${container.state}`,
-);
-console.log(`Order     ${order.reference} — ${order.customer} — ${order.state}`);
+  for (const candidate of pickCandidates(containers, sku, strategy)) {
+    const expiry = candidate.expiryDate?.toISOString().slice(0, 10) ?? "never";
+    const received = candidate.receivedAt.toISOString().slice(0, 10);
+    console.log(
+      `  ${candidate.lpn}  qty ${String(candidate.availableQuantity).padStart(3)}` +
+        `  received ${received}  expires ${expiry}`,
+    );
+  }
+  console.log("");
+}
+
+reportStock("SNK-BLUE-42");
+reportStock("YOG-NAT-500");
+
+reportStrategy("YOG-NAT-500", "fifo");
+reportStrategy("YOG-NAT-500", "fefo");
+
+const order = allocate(containers, "YOG-NAT-500", 150, "fefo");
+console.log("allocate 150 YOG-NAT-500 with FEFO");
+for (const pick of order.picks) {
+  console.log(`  take ${pick.quantity} from ${pick.lpn}`);
+}
+console.log(`  shortfall ${order.shortfall}`);
