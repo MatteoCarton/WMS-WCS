@@ -6,9 +6,9 @@ const complain = (cause: unknown): string => {
   const code = cause instanceof Error ? (cause as NodeJS.ErrnoException).code : undefined
   if (code === 'EADDRINUSE') {
     return [
-      `Le port ${port} est déjà occupé — une autre installation tourne probablement déjà.`,
+      `Le port ${port} est déjà occupé ; une autre installation tourne probablement déjà.`,
       `Pour la trouver et l'arrêter : lsof -ti:${port} | xargs kill`,
-      `Ou pour démarrer à côté : PORT=${port + 1} npm run installation`,
+      `Ou pour démarrer à côté : PORT=${port + 1} npm run simulator`,
     ].join('\n')
   }
   return cause instanceof Error ? cause.message : String(cause)

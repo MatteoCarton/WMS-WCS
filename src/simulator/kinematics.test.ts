@@ -16,28 +16,28 @@ const run = (from: number, to: number, limits: Limits): { seconds: number; peak:
   return { seconds, peak }
 }
 
-test('la machine atteint sa cible et s’arrête dessus', () => {
+test('the machine reaches its target and stops on it', () => {
   const outcome = run(0, 30, SHUTTLE)
   assert.ok(outcome.seconds < 600)
 })
 
-test('la vitesse ne dépasse jamais la vitesse nominale', () => {
+test('the speed never exceeds the rated speed', () => {
   const outcome = run(0, 30, SHUTTLE)
   assert.ok(outcome.peak <= SHUTTLE.maxSpeed + 1e-9)
 })
 
-test('un trajet court ne laisse pas le temps d’atteindre la vitesse nominale', () => {
+test('a short run leaves no time to reach the rated speed', () => {
   const outcome = run(0, 1, SHUTTLE)
   assert.ok(outcome.peak < SHUTTLE.maxSpeed)
 })
 
-test('le temps simulé suit le profil trapézoïdal théorique', () => {
+test('the simulated time follows the theoretical trapezoidal profile', () => {
   const outcome = run(0, 30, SHUTTLE)
   const expected = travelSeconds(30, SHUTTLE)
   assert.ok(Math.abs(outcome.seconds - expected) < 0.5, `${outcome.seconds} vs ${expected}`)
 })
 
-test('un trajet en marche arrière fonctionne comme un trajet en marche avant', () => {
+test('a run in reverse behaves like a run forward', () => {
   const forward = run(0, 20, SHUTTLE)
   const backward = run(20, 0, SHUTTLE)
   assert.ok(Math.abs(forward.seconds - backward.seconds) < 0.05)

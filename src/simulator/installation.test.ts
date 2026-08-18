@@ -30,7 +30,7 @@ const simulate = (
   return { runtime, ticks, telegrams }
 }
 
-test('accélérer l’horloge ne change rien au comportement de l’installation', () => {
+test('speeding up the clock changes nothing in how the site behaves', () => {
   const fast = simulate(5, 40)
   const slow = simulate(1, 200)
   assert.equal(fast.ticks, slow.ticks)
@@ -41,21 +41,21 @@ test('accélérer l’horloge ne change rien au comportement de l’installation
   )
 })
 
-test('une palette traverse toute l’installation, de la production au quai', () => {
+test('a pallet crosses the whole site, from production to the dock', () => {
   const outcome = simulate(1, 200)
   const state = outcome.runtime.state
 
-  assert.ok(state.received > 0, 'aucune palette produite')
-  assert.ok(Object.keys(state.slots).length > 0, 'aucune palette rangée en alvéole')
-  assert.ok(state.shipped > 0, 'aucune palette expédiée')
+  assert.ok(state.received > 0, 'no pallet was produced')
+  assert.ok(Object.keys(state.slots).length > 0, 'no pallet was stored in a slot')
+  assert.ok(state.shipped > 0, 'no pallet was shipped')
 
   const shipped = outcome.telegrams.find(
     (telegram) => telegram.kind === 'TRPFIN' && telegram.location === 'DOCK01',
   )
-  assert.ok(shipped, 'aucun compte rendu de départ quai')
+  assert.ok(shipped, 'no report of a departure from the dock')
 })
 
-test('le point d’identification annonce le code-barres et les dimensions réelles', () => {
+test('the identification point reports the barcode and the measured dimensions', () => {
   const outcome = simulate(1, 60)
   const read = outcome.telegrams.find((telegram) => telegram.kind === 'IDNRPT')
   assert.ok(read && read.kind === 'IDNRPT')
@@ -66,7 +66,7 @@ test('le point d’identification annonce le code-barres et les dimensions réel
   assert.ok(read.weightKg > 0)
 })
 
-test('chaque ordre reçoit un accusé de réception de la machine visée', () => {
+test('every order is acknowledged by the machine it targets', () => {
   const outcome = simulate(1, 120)
   const orders = outcome.telegrams.filter((telegram) => telegram.kind === 'TRPORD')
   assert.ok(orders.length > 0)
@@ -77,33 +77,33 @@ test('chaque ordre reçoit un accusé de réception de la machine visée', () =>
         telegram.order === order.sequence &&
         telegram.source === order.target,
     )
-    assert.ok(acknowledged, `ordre ${order.sequence} sans accusé`)
+    assert.ok(acknowledged, `order ${order.sequence} was never acknowledged`)
   }
 })
 
-test('une alvéole ne reçoit jamais deux palettes à la fois', () => {
+test('a slot never holds two pallets at once', () => {
   const state = simulate(1, 200).runtime.state
   const occupied = Object.entries(state.slots)
   const units = new Set(occupied.map(([, unit]) => unit.id))
   assert.equal(units.size, occupied.length)
   for (const [slot] of occupied) {
-    assert.ok(layout.ALL_SLOTS.includes(slot), `alvéole inconnue : ${slot}`)
+    assert.ok(layout.ALL_SLOTS.includes(slot), `unknown slot: ${slot}`)
   }
 })
 
-test('le magasin trouve son équilibre au lieu de se vider ou de saturer', () => {
+test('the store settles instead of emptying out or filling up', () => {
   const state = simulate(1, 1800).runtime.state
   const stored = Object.keys(state.slots).length
-  assert.ok(stored > 12, `le magasin se vide : ${stored} palettes en rayon`)
+  assert.ok(stored > 12, `the store is emptying out: ${stored} pallets on the racks`)
   assert.ok(
     stored < layout.ALL_SLOTS.length - 6,
-    `le magasin sature : ${stored}/${layout.ALL_SLOTS.length}`,
+    `the store is filling up: ${stored}/${layout.ALL_SLOTS.length}`,
   )
-  assert.ok(state.shipped > 20, `seulement ${state.shipped} palettes expédiées`)
-  assert.ok(state.received > 20, `seulement ${state.received} palettes produites`)
+  assert.ok(state.shipped > 20, `only ${state.shipped} pallets shipped`)
+  assert.ok(state.received > 20, `only ${state.received} pallets produced`)
 })
 
-test('une palette identifiée sans alvéole libre n’est pas oubliée', () => {
+test('an identified pallet with no free slot is not forgotten', () => {
   const outcome = simulate(1, 1800)
   const stores = outcome.telegrams.filter(
     (telegram) => telegram.kind === 'TRPORD' && telegram.to.startsWith('RCK'),
@@ -112,18 +112,18 @@ test('une palette identifiée sans alvéole libre n’est pas oubliée', () => {
   assert.ok(reads.length > 0)
   assert.ok(
     stores.length >= reads.length - outcome.runtime.pilot.waiting.length - 3,
-    `${reads.length} lectures pour seulement ${stores.length} ordres de rangement`,
+    `${reads.length} reads for only ${stores.length} store orders`,
   )
 })
 
-test('les machines rapportent leur état au démarrage', () => {
+test('the machines report their state at start-up', () => {
   const begun = start()
   const reported = begun.telegrams.filter((telegram) => telegram.kind === 'STSMSG')
   assert.equal(reported.length, layout.LEVELS.length + layout.INFEED.length + layout.OUTFEED.length + 2)
   assert.ok(reported.every((telegram) => telegram.kind === 'STSMSG' && telegram.state === 'IDLE'))
 })
 
-test('le stock déjà en rayon est annoncé au WCS au démarrage', () => {
+test('the stock already on the racks is announced to the WCS at start-up', () => {
   const begun = start()
   const inventory = begun.telegrams.filter((telegram) => telegram.kind === 'INVRPT')
   assert.equal(inventory.length, Object.keys(begun.runtime.state.slots).length)
@@ -134,7 +134,7 @@ test('le stock déjà en rayon est annoncé au WCS au démarrage', () => {
   assert.equal(begun.runtime.pilot.stored.length, inventory.length)
 })
 
-test('le WCS ne range jamais une palette dans une alvéole déjà pleine', () => {
+test('the WCS never stores a pallet in a slot that is already full', () => {
   const outcome = simulate(1, 200)
   const occupied = new Set(Object.keys(outcome.runtime.state.slots))
   const stores = outcome.telegrams.filter(
