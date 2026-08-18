@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "wcs-demo"
+name = "navette-wcs"
 version = "0.1.0"
