@@ -1,10 +1,10 @@
 {
-  "name": "navette-installation",
+  "name": "navette-simulator",
   "version": "1.0.0",
   "description": "Émulation de l'installation : convoyeurs, aiguillages, points d'identification",
   "type": "module",
   "scripts": {
-    "installation": "tsx src/installation/main.ts",
+    "simulator": "tsx src/simulator/main.ts",
     "check": "tsc --noEmit",
     "test": "tsx --test \"src/**/*.test.ts\""
   },
