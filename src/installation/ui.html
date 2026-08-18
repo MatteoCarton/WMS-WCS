@@ -1,0 +1,1326 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Navette — émulation de l'installation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #080a0e;
+        --ink-2: #0c1015;
+        --panel: #101419;
+        --panel-2: #141920;
+        --hair: #1c232c;
+        --hair-2: #28313c;
+        --text: #e8ecf1;
+        --muted: #78838f;
+        --dim: #4d5763;
+        --steel: #6b7787;
+        --flow: #6cb6f2;
+        --hold: #efa650;
+        --fault: #f0625e;
+        --rest: #46c191;
+        --pallet: #e0a94e;
+        --pallet-dark: #a5762e;
+        --pallet-band: #f2cd8a;
+        --ease: cubic-bezier(0.32, 0.72, 0, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(1200px 620px at 22% -8%, #16202b 0%, transparent 62%),
+          radial-gradient(900px 520px at 96% 108%, #17130d 0%, transparent 58%),
+          var(--ink);
+        color: var(--text);
+        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-size: 14px;
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+      }
+
+      header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 32px;
+        padding: 22px 30px 18px;
+        border-bottom: 1px solid var(--hair);
+        flex-wrap: wrap;
+      }
+
+      .kicker {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--dim);
+        margin-bottom: 6px;
+      }
+
+      h1 {
+        font-family: 'Instrument Serif', Georgia, serif;
+        font-weight: 400;
+        font-size: 34px;
+        line-height: 1;
+        margin: 0;
+        letter-spacing: 0.01em;
+      }
+
+      h1 em {
+        font-style: italic;
+        color: var(--pallet);
+      }
+
+      .pilot {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+      }
+
+      .clock {
+        text-align: right;
+      }
+
+      .clock time {
+        display: block;
+        font-family: 'Instrument Serif', Georgia, serif;
+        font-size: 40px;
+        line-height: 0.92;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.02em;
+      }
+
+      .clock span {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+
+      .transport {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: none;
+        cursor: pointer;
+      }
+
+      .toggle {
+        width: 40px;
+        height: 34px;
+        border: 1px solid var(--hair-2);
+        border-radius: 9px;
+        background: var(--panel);
+        display: grid;
+        place-items: center;
+        transition:
+          transform 160ms ease-out,
+          border-color 160ms ease-out,
+          background 160ms ease-out;
+      }
+
+      .toggle:hover {
+        border-color: var(--steel);
+      }
+
+      .toggle:active {
+        transform: scale(0.94);
+      }
+
+      .toggle svg {
+        width: 12px;
+        height: 12px;
+        fill: var(--text);
+      }
+
+      .speeds {
+        position: relative;
+        display: flex;
+        padding: 3px;
+        border: 1px solid var(--hair-2);
+        border-radius: 10px;
+        background: var(--panel);
+      }
+
+      .speeds .thumb {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 44px;
+        height: 28px;
+        border-radius: 7px;
+        background: linear-gradient(180deg, #253141, #1a2330);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        transition: transform 260ms var(--ease);
+      }
+
+      .speeds button {
+        position: relative;
+        width: 44px;
+        height: 28px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 12px;
+        color: var(--muted);
+        transition: color 180ms ease-out;
+      }
+
+      .speeds button[data-on='1'] {
+        color: var(--text);
+      }
+
+      main {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 18px 30px 0;
+        gap: 14px;
+      }
+
+      .stage {
+        position: relative;
+        flex: 1;
+        min-height: 320px;
+        border: 1px solid var(--hair);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(24, 33, 44, 0.5), rgba(9, 12, 16, 0.5));
+        overflow: hidden;
+      }
+
+      .stage::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+      }
+
+      #scene {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 20px;
+        padding: 0 4px 2px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .legend i {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        margin-right: 7px;
+        vertical-align: -1px;
+      }
+
+      .readout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 268px;
+        gap: 14px;
+        padding: 0 30px 22px;
+        min-height: 0;
+      }
+
+      .panel {
+        border: 1px solid var(--hair);
+        border-radius: 14px;
+        background: var(--panel);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .panel > h2 {
+        margin: 0;
+        padding: 12px 16px 10px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--dim);
+        border-bottom: 1px solid var(--hair);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .filters {
+        display: flex;
+        gap: 5px;
+      }
+
+      .filters button {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.08em;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--hair-2);
+        color: var(--dim);
+        transition:
+          color 160ms ease-out,
+          border-color 160ms ease-out,
+          background 160ms ease-out;
+      }
+
+      .filters button[data-on='1'] {
+        color: var(--text);
+        border-color: var(--steel);
+        background: #19212b;
+      }
+
+      #console {
+        flex: 1;
+        min-height: 176px;
+        max-height: 232px;
+        overflow-y: auto;
+        overflow-x: auto;
+        padding: 8px 16px 12px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11.5px;
+        line-height: 1.65;
+        scrollbar-width: thin;
+        scrollbar-color: var(--hair-2) transparent;
+      }
+
+      #console div {
+        white-space: pre;
+        color: var(--steel);
+        animation: line 200ms ease-out;
+      }
+
+      @keyframes line {
+        from {
+          opacity: 0;
+          transform: translateY(3px);
+        }
+      }
+
+      #console div[data-kind='TRPORD'] {
+        color: var(--flow);
+      }
+      #console div[data-kind='TRPFIN'] {
+        color: var(--rest);
+      }
+      #console div[data-kind='IDNRPT'] {
+        color: var(--pallet);
+      }
+      #console div[data-kind='ERRMSG'] {
+        color: var(--fault);
+      }
+      #console div[data-kind='TRPACK'] {
+        color: var(--muted);
+      }
+      #console div[data-kind='INVRPT'] {
+        color: #b39ae0;
+      }
+
+      .metrics {
+        padding: 4px 16px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .metric {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--hair);
+      }
+
+      .metric:last-of-type {
+        border-bottom: none;
+      }
+
+      .metric span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .metric b {
+        font-family: 'IBM Plex Mono', monospace;
+        font-weight: 500;
+        font-size: 19px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .metric b small {
+        font-size: 11px;
+        color: var(--dim);
+        margin-left: 3px;
+      }
+
+      .gauge {
+        height: 4px;
+        border-radius: 99px;
+        background: #1a212a;
+        overflow: hidden;
+        margin-top: 10px;
+      }
+
+      .gauge i {
+        display: block;
+        height: 100%;
+        background: linear-gradient(90deg, var(--pallet-dark), var(--pallet));
+        transform-origin: left;
+        transform: scaleX(0);
+        transition: transform 320ms var(--ease);
+      }
+
+      .pallet-body {
+        fill: var(--pallet);
+      }
+      .pallet-shade {
+        fill: var(--pallet-dark);
+      }
+      .pallet-band {
+        fill: var(--pallet-band);
+        opacity: 0.55;
+      }
+
+      .moving {
+        transition: transform 70ms linear;
+      }
+
+      .cell {
+        fill: transparent;
+        stroke: var(--hair-2);
+        transition: fill 220ms ease-out;
+      }
+
+      .cell[data-full='1'] {
+        fill: rgba(224, 169, 78, 0.05);
+      }
+
+      .chassis {
+        fill: #202a36;
+        stroke: var(--steel);
+      }
+
+      .chassis[data-state='BUSY'] {
+        stroke: var(--flow);
+        fill: #1d2b3a;
+      }
+      .chassis[data-state='BLOCKED'] {
+        stroke: var(--hold);
+        fill: #2a2419;
+      }
+      .chassis[data-state='FAULT'] {
+        stroke: var(--fault);
+      }
+
+      .tag {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 5.2px;
+        letter-spacing: 0.06em;
+        fill: var(--dim);
+      }
+
+      .tag.live {
+        fill: var(--flow);
+      }
+
+      .caption {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 5px;
+        fill: var(--muted);
+      }
+
+      .caption-num {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 5px;
+        fill: var(--pallet);
+      }
+
+      .arrow {
+        stroke: var(--dim);
+        fill: none;
+        stroke-width: 0.6;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .moving,
+        .gauge i,
+        .speeds .thumb {
+          transition-duration: 0ms;
+        }
+        #console div {
+          animation: none;
+        }
+      }
+
+      @media (max-width: 1080px) {
+        .readout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <div class="kicker">Ceratec · Shuttle loop · émulation des machines</div>
+        <h1>Magasin automatique <em>à navettes</em></h1>
+      </div>
+      <div class="pilot">
+        <div class="clock">
+          <time id="clock">00:00:00</time>
+          <span>horloge de l'installation</span>
+        </div>
+        <div class="transport">
+          <button class="toggle" id="pause" title="Pause / marche (espace)">
+            <svg id="pause-icon" viewBox="0 0 12 12">
+              <rect x="1.5" y="1" width="3" height="10" rx="0.8" />
+              <rect x="7.5" y="1" width="3" height="10" rx="0.8" />
+            </svg>
+          </button>
+          <div class="speeds" id="speeds">
+            <div class="thumb" id="thumb"></div>
+            <button data-factor="1">×1</button>
+            <button data-factor="2">×2</button>
+            <button data-factor="5">×5</button>
+            <button data-factor="10">×10</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="stage"><svg id="scene"></svg></div>
+      <div class="legend">
+        <span><i style="background: #e0a94e"></i>Palette</span>
+        <span><i style="background: #202a36; border: 1px solid #6b7787"></i>Machine à l'arrêt</span>
+        <span><i style="background: #1d2b3a; border: 1px solid #6cb6f2"></i>Machine en mouvement</span>
+        <span><i style="background: #2a2419; border: 1px solid #efa650"></i>Machine en attente d'une autre</span>
+        <span><i style="border: 1px solid #28313c"></i>Alvéole — un emplacement de stockage</span>
+      </div>
+    </main>
+
+    <div class="readout">
+      <section class="panel">
+        <h2>
+          Télégrammes machines ↔ WCS
+          <span class="filters" id="filters">
+            <button data-kind="TRPORD" data-on="1">Ordres</button>
+            <button data-kind="TRPACK" data-on="1">Accusés</button>
+            <button data-kind="TRPFIN" data-on="1">Fins</button>
+            <button data-kind="IDNRPT" data-on="1">Lectures</button>
+            <button data-kind="INVRPT" data-on="1">Inventaire</button>
+            <button data-kind="STSMSG" data-on="1">États</button>
+          </span>
+        </h2>
+        <div id="console"></div>
+      </section>
+      <section class="panel">
+        <h2>Compteurs</h2>
+        <div class="metrics">
+          <div class="metric"><span>Palettes entrées</span><b id="m-in">0</b></div>
+          <div class="metric">
+            <span>En stock</span><b><span id="m-stock">0</span><small id="m-cap">/48</small></b>
+          </div>
+          <div class="metric"><span>Palettes expédiées</span><b id="m-out">0</b></div>
+          <div class="metric">
+            <span>Débit sortie</span><b id="m-rate">0<small>pal/h</small></b>
+          </div>
+          <div class="gauge"><i id="m-gauge"></i></div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const SCALE = 12
+      const PALLET_W = 1.2
+      const CELL_W = 1.7
+      const CELL_LOW = 2.9
+      const CELL_HIGH = 4.9
+      const DECK_TOP = 0.85
+      const CART_W = 2.4
+
+      const svg = document.getElementById('scene')
+      const NS = 'http://www.w3.org/2000/svg'
+
+      const make = (name, attributes, parent) => {
+        const node = document.createElementNS(NS, name)
+        for (const key in attributes) node.setAttribute(key, attributes[key])
+        if (parent) parent.appendChild(node)
+        return node
+      }
+
+      const mix = (a, b, t) => a + (b - a) * t
+
+      let scene = null
+      let toX = (x) => x
+      let toY = (y) => y
+      const cells = new Map()
+      const shuttleNodes = new Map()
+      const liftNodes = new Map()
+      const sectionNodes = new Map()
+      const palletNodes = new Map()
+      let palletLayer = null
+
+      const LABEL_ROW = -1.15
+      const TICK_TOP = -1.7
+      const TICK_LOW = -2.35
+      const CAPTIONS = [
+        ['1', 3.4, 'Les palettes sortent', 'de la production'],
+        ['3', 13.9, "L'élévateur monte", 'au bon étage'],
+        ['4', 30.5, 'La navette range la palette', 'dans une alvéole libre'],
+        ['5', 46.1, "L'élévateur", 'redescend'],
+        ['6', 56.4, 'La palette entre', 'dans le camion'],
+      ]
+
+      const BEAM = 3.5
+      const LENS = 2.95
+
+      const drawScanner = (parent, section) => {
+        const mid = (section.from + section.to) / 2
+        const x = toX(mid)
+        for (const post of [section.from, section.to]) {
+          make(
+            'line',
+            {
+              x1: toX(post),
+              y1: toY(BEAM),
+              x2: toX(post),
+              y2: toY(DECK_TOP + 0.1),
+              stroke: '#5a6775',
+              'stroke-width': 0.9,
+            },
+            parent,
+          )
+        }
+        make(
+          'line',
+          {
+            x1: toX(section.from),
+            y1: toY(BEAM),
+            x2: toX(section.to),
+            y2: toY(BEAM),
+            stroke: '#5a6775',
+            'stroke-width': 0.9,
+          },
+          parent,
+        )
+        make(
+          'rect',
+          {
+            x: toX(mid - 0.45),
+            y: toY(BEAM),
+            width: 0.9 * SCALE,
+            height: (BEAM - LENS) * SCALE,
+            rx: 1,
+            fill: '#16202b',
+            stroke: '#5a6775',
+            'stroke-width': 0.7,
+          },
+          parent,
+        )
+        make(
+          'path',
+          {
+            d: `M ${x} ${toY(LENS)} L ${x} ${toY(DECK_TOP + 0.1)}`,
+            stroke: '#6cb6f2',
+            'stroke-width': 0.6,
+            'stroke-dasharray': '2 2',
+            opacity: 0.75,
+          },
+          parent,
+        )
+        make('circle', { cx: x, cy: toY(LENS), r: 2.2, fill: '#6cb6f2', opacity: 0.9 }, parent)
+        make(
+          'text',
+          { x, y: toY(5.5), class: 'caption', 'text-anchor': 'middle' },
+          parent,
+        ).textContent = 'Le scanner lit'
+        make(
+          'text',
+          { x, y: toY(4.9), class: 'caption', 'text-anchor': 'middle' },
+          parent,
+        ).textContent = 'le code-barres'
+        make(
+          'text',
+          { x, y: toY(4.2), class: 'caption-num', 'text-anchor': 'middle' },
+          parent,
+        ).textContent = '2'
+      }
+
+      const buildScene = (data) => {
+        scene = data
+        const { left, right, top, bottom } = data.world
+        toX = (x) => (x - left) * SCALE
+        toY = (y) => (top - y) * SCALE
+        const width = (right - left) * SCALE
+        const height = (top - bottom) * SCALE
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
+        svg.innerHTML = ''
+
+        const defs = make('defs', {}, svg)
+        const grid = make(
+          'pattern',
+          { id: 'grid', width: SCALE, height: SCALE, patternUnits: 'userSpaceOnUse' },
+          defs,
+        )
+        make(
+          'path',
+          {
+            d: `M ${SCALE} 0 L 0 0 0 ${SCALE}`,
+            fill: 'none',
+            stroke: '#151b23',
+            'stroke-width': 0.6,
+          },
+          grid,
+        )
+        make('rect', { width, height, fill: 'url(#grid)' }, svg)
+
+        const structure = make('g', {}, svg)
+        const machines = make('g', {}, svg)
+        palletLayer = make('g', {}, svg)
+        const overlay = make('g', {}, svg)
+
+        make(
+          'line',
+          {
+            x1: toX(left),
+            y1: toY(0),
+            x2: toX(right),
+            y2: toY(0),
+            stroke: '#2c3742',
+            'stroke-width': 1,
+          },
+          structure,
+        )
+
+        const crest = data.levels[data.levels.length - 1].height + CELL_HIGH
+
+        for (const lift of data.lifts) {
+          const x = toX(lift.x)
+          make(
+            'rect',
+            {
+              x: x - 1.45 * SCALE,
+              y: toY(crest),
+              width: 2.9 * SCALE,
+              height: (crest + 0.6) * SCALE,
+              fill: 'rgba(30,40,53,0.4)',
+              stroke: '#2a333f',
+              'stroke-width': 0.7,
+            },
+            structure,
+          )
+          for (const side of [-1.25, 1.25]) {
+            make(
+              'line',
+              {
+                x1: x + side * SCALE,
+                y1: toY(crest - 0.2),
+                x2: x + side * SCALE,
+                y2: toY(-0.5),
+                stroke: '#3d4a58',
+                'stroke-width': 0.7,
+                'stroke-dasharray': '1.5 2.5',
+              },
+              structure,
+            )
+          }
+        }
+
+        for (const level of data.levels) {
+          const y = toY(level.height)
+          const own = data.slots.filter((slot) => slot.level === level.level)
+          const left = own[0].x - data.slotPitch / 2
+          const right = own[own.length - 1].x + data.slotPitch / 2
+          make(
+            'line',
+            {
+              x1: toX(data.aisle.from - 1.4),
+              y1: y,
+              x2: toX(data.aisle.to + 1.4),
+              y2: y,
+              stroke: '#39434f',
+              'stroke-width': 1.2,
+            },
+            structure,
+          )
+          make(
+            'line',
+            {
+              x1: toX(left),
+              y1: toY(level.height + CELL_LOW),
+              x2: toX(right),
+              y2: toY(level.height + CELL_LOW),
+              stroke: '#39434f',
+              'stroke-width': 1,
+            },
+            structure,
+          )
+          for (let post = 0; post <= own.length; post += 1) {
+            const x = toX(left + post * data.slotPitch)
+            make(
+              'line',
+              {
+                x1: x,
+                y1: toY(level.height),
+                x2: x,
+                y2: toY(level.height + CELL_HIGH),
+                stroke: '#1f2731',
+                'stroke-width': 0.6,
+              },
+              structure,
+            )
+          }
+          make(
+            'text',
+            {
+              x: toX(-1.0),
+              y: toY(level.height + 0.35),
+              class: 'tag',
+              'text-anchor': 'end',
+            },
+            structure,
+          ).textContent = `NIVEAU ${level.level}`
+        }
+
+        for (const slot of data.slots) {
+          const base = data.levels.find((entry) => entry.level === slot.level).height
+          const rect = make(
+            'rect',
+            {
+              x: toX(slot.x - CELL_W / 2),
+              y: toY(base + CELL_HIGH),
+              width: CELL_W * SCALE,
+              height: (CELL_HIGH - CELL_LOW) * SCALE,
+              rx: 1.2,
+              class: 'cell',
+              'stroke-width': 0.7,
+            },
+            structure,
+          )
+          cells.set(slot.id, rect)
+        }
+
+        for (const which of ['infeed', 'outfeed']) {
+          const run = data.sections.filter((section) => section.line === which)
+          if (run.length === 0) continue
+          const start = run[0].from - 0.4
+          const end = run[run.length - 1].to + 0.4
+          const belt = make('g', {}, machines)
+          make(
+            'rect',
+            {
+              x: toX(start),
+              y: toY(DECK_TOP),
+              width: (end - start) * SCALE,
+              height: 0.7 * SCALE,
+              rx: 1.5,
+              fill: '#182029',
+            },
+            belt,
+          )
+          for (let x = start + 0.28; x <= end - 0.28; x += 0.55) {
+            make(
+              'line',
+              {
+                x1: toX(x),
+                y1: toY(DECK_TOP - 0.08),
+                x2: toX(x),
+                y2: toY(DECK_TOP - 0.62),
+                stroke: '#3d4a58',
+                'stroke-width': 0.5,
+              },
+              belt,
+            )
+          }
+          run.forEach((section, index) => {
+            const left = index === 0 ? start : (run[index - 1].to + section.from) / 2
+            const right = index === run.length - 1 ? end : (section.to + run[index + 1].from) / 2
+            const body = make('g', { class: 'chassis', fill: 'none' }, belt)
+            for (const edge of [DECK_TOP, DECK_TOP - 0.7]) {
+              make(
+                'line',
+                {
+                  x1: toX(left),
+                  y1: toY(edge),
+                  x2: toX(right),
+                  y2: toY(edge),
+                  'stroke-width': 0.8,
+                },
+                body,
+              )
+            }
+            for (const cap of [index === 0 ? left : null, index === run.length - 1 ? right : null]) {
+              if (cap === null) continue
+              make(
+                'line',
+                {
+                  x1: toX(cap),
+                  y1: toY(DECK_TOP),
+                  x2: toX(cap),
+                  y2: toY(DECK_TOP - 0.7),
+                  'stroke-width': 0.8,
+                },
+                body,
+              )
+            }
+            if (section.identifies) drawScanner(belt, section)
+            const label = make(
+              'text',
+              {
+                x: toX((section.from + section.to) / 2),
+                y: toY(LABEL_ROW),
+                class: 'tag',
+                'text-anchor': 'middle',
+              },
+              belt,
+            )
+            label.textContent = section.id
+            sectionNodes.set(section.id, { body, label })
+          })
+        }
+
+        const trailer = make('g', {}, machines)
+        const bed = DECK_TOP
+        const roof = 4.5
+        const nose = 53.8
+        const tail = 57.8
+        make(
+          'path',
+          {
+            d: `M ${toX(nose)} ${toY(roof)} L ${toX(tail)} ${toY(roof)} L ${toX(tail)} ${toY(bed)} L ${toX(nose)} ${toY(bed)}`,
+            fill: 'none',
+            stroke: '#5a6775',
+            'stroke-width': 0.9,
+            'stroke-linejoin': 'round',
+          },
+          trailer,
+        )
+        for (const stub of [[roof, roof - 0.75], [bed, bed + 0.75]]) {
+          make(
+            'line',
+            {
+              x1: toX(nose),
+              y1: toY(stub[0]),
+              x2: toX(nose),
+              y2: toY(stub[1]),
+              stroke: '#5a6775',
+              'stroke-width': 0.9,
+            },
+            trailer,
+          )
+        }
+        for (const wheel of [56.5, 57.4]) {
+          make(
+            'circle',
+            {
+              cx: toX(wheel),
+              cy: toY(0.42),
+              r: 0.42 * SCALE,
+              fill: '#0c1015',
+              stroke: '#5a6775',
+              'stroke-width': 0.7,
+            },
+            trailer,
+          )
+          make(
+            'circle',
+            { cx: toX(wheel), cy: toY(0.42), r: 0.15 * SCALE, fill: '#2a333f' },
+            trailer,
+          )
+        }
+        make(
+          'text',
+          { x: toX((nose + tail) / 2), y: toY(roof + 0.7), class: 'tag', 'text-anchor': 'middle' },
+          trailer,
+        ).textContent = 'QUAI 01'
+
+        for (const lift of data.lifts) {
+          const group = make('g', {}, machines)
+          const shell = make('g', { class: 'moving' }, group)
+          const body = make(
+            'rect',
+            {
+              x: -1.1 * SCALE,
+              y: -0.7 * SCALE,
+              width: 2.2 * SCALE,
+              height: 0.7 * SCALE,
+              rx: 1.5,
+              class: 'chassis',
+              'stroke-width': 0.7,
+            },
+            shell,
+          )
+          for (const side of [-1.25, 1.25]) {
+            make(
+              'rect',
+              {
+                x: side * SCALE - 1.2,
+                y: -0.95 * SCALE,
+                width: 2.4,
+                height: 1.2 * SCALE,
+                fill: '#3d4a58',
+              },
+              shell,
+            )
+          }
+          const label = make(
+            'text',
+            { x: toX(lift.x), y: toY(LABEL_ROW), class: 'tag', 'text-anchor': 'middle' },
+            group,
+          )
+          label.textContent = lift.id
+          liftNodes.set(lift.id, { shell, body, label })
+        }
+
+        for (const level of data.levels) {
+          const group = make('g', {}, machines)
+          const shell = make('g', { class: 'moving' }, group)
+          const body = make(
+            'rect',
+            {
+              x: (-CART_W / 2) * SCALE,
+              y: -0.75 * SCALE,
+              width: CART_W * SCALE,
+              height: 0.75 * SCALE,
+              rx: 1.5,
+              class: 'chassis',
+              'stroke-width': 0.7,
+            },
+            shell,
+          )
+          for (const offset of [-0.8, 0.8]) {
+            make(
+              'circle',
+              { cx: offset * SCALE, cy: -0.1 * SCALE, r: 0.16 * SCALE, fill: '#0d1218', stroke: '#6b7787', 'stroke-width': 0.5 },
+              shell,
+            )
+          }
+          const label = make('text', { class: 'tag', 'text-anchor': 'middle' }, shell)
+          label.setAttribute('x', 0)
+          label.setAttribute('y', 0.62 * SCALE)
+          label.textContent = `NAV0${level.level}`
+          shuttleNodes.set(`NAV0${level.level}`, { shell, body, label })
+        }
+
+        make(
+          'path',
+          {
+            d: `M ${toX(-0.6)} ${toY(DECK_TOP - 0.35)} L ${toX(0.3)} ${toY(DECK_TOP - 0.35)}`,
+            class: 'arrow',
+            'marker-end': 'url(#head)',
+          },
+          overlay,
+        )
+        const marker = make(
+          'marker',
+          { id: 'head', markerWidth: 5, markerHeight: 5, refX: 4, refY: 2.5, orient: 'auto' },
+          defs,
+        )
+        make('path', { d: 'M0,0 L5,2.5 L0,5 Z', fill: '#4d5763' }, marker)
+
+        for (const [number, x, first, second] of CAPTIONS) {
+          make(
+            'line',
+            {
+              x1: toX(x),
+              y1: toY(TICK_TOP),
+              x2: toX(x),
+              y2: toY(TICK_LOW),
+              stroke: '#28313c',
+              'stroke-width': 0.6,
+            },
+            overlay,
+          )
+          make(
+            'text',
+            { x: toX(x), y: toY(-2.9), class: 'caption-num', 'text-anchor': 'middle' },
+            overlay,
+          ).textContent = number
+          make(
+            'text',
+            { x: toX(x), y: toY(-3.45), class: 'caption', 'text-anchor': 'middle' },
+            overlay,
+          ).textContent = first
+          make(
+            'text',
+            { x: toX(x), y: toY(-4.0), class: 'caption', 'text-anchor': 'middle' },
+            overlay,
+          ).textContent = second
+        }
+      }
+
+      const palletNode = (pallet) => {
+        const found = palletNodes.get(pallet.id)
+        if (found) return found
+        const height = pallet.heightMm / 1000
+        const group = make('g', { class: 'moving' }, palletLayer)
+        make(
+          'rect',
+          {
+            x: (-PALLET_W / 2) * SCALE,
+            y: -height * SCALE,
+            width: PALLET_W * SCALE,
+            height: (height - 0.14) * SCALE,
+            rx: 0.8,
+            class: 'pallet-body',
+          },
+          group,
+        )
+        make(
+          'rect',
+          {
+            x: (-PALLET_W / 2) * SCALE,
+            y: (-height + 0.42) * SCALE,
+            width: PALLET_W * SCALE,
+            height: 0.1 * SCALE,
+            class: 'pallet-band',
+          },
+          group,
+        )
+        make(
+          'rect',
+          {
+            x: (-PALLET_W / 2) * SCALE,
+            y: -0.14 * SCALE,
+            width: PALLET_W * SCALE,
+            height: 0.14 * SCALE,
+            class: 'pallet-shade',
+          },
+          group,
+        )
+        const title = make('title', {}, group)
+        title.textContent = `${pallet.id} · ${pallet.article}\n${pallet.barcode} · ${pallet.weightKg} kg · ${pallet.heightMm} mm`
+        const node = { group, title }
+        palletNodes.set(pallet.id, node)
+        return node
+      }
+
+      const levelHeight = (level) => scene.levels.find((entry) => entry.level === level).height
+
+      const slotPlace = (slotId) => {
+        const slot = scene.slots.find((entry) => entry.id === slotId)
+        return { x: slot.x, y: levelHeight(slot.level) + CELL_LOW + 0.15 }
+      }
+
+      const render = (frame) => {
+        document.getElementById('clock').textContent = frame.clock.slice(0, 8)
+
+        const seen = new Set()
+        const place = (pallet, x, y) => {
+          seen.add(pallet.id)
+          const node = palletNode(pallet)
+          node.group.setAttribute('transform', `translate(${toX(x)} ${toY(y)})`)
+        }
+
+        for (const section of frame.sections) {
+          const node = sectionNodes.get(section.id)
+          if (node) {
+            node.body.setAttribute('data-state', section.state)
+            node.label.textContent = section.id
+          }
+          if (section.pallet) place(section.pallet, section.palletX, DECK_TOP)
+        }
+
+        for (const lift of frame.lifts) {
+          const node = liftNodes.get(lift.id)
+          node.shell.setAttribute(
+            'transform',
+            `translate(${toX(lift.x)} ${toY(lift.height + DECK_TOP)})`,
+          )
+          node.body.setAttribute('data-state', lift.state)
+          node.label.setAttribute('class', lift.speed > 0.05 ? 'tag live' : 'tag')
+          if (lift.pallet) place(lift.pallet, lift.x, lift.height + DECK_TOP)
+        }
+
+        const picking = new Map()
+        for (const shuttle of frame.shuttles) {
+          const node = shuttleNodes.get(shuttle.id)
+          const base = levelHeight(shuttle.level)
+          node.shell.setAttribute('transform', `translate(${toX(shuttle.x)} ${toY(base)})`)
+          node.body.setAttribute('data-state', shuttle.state)
+          node.label.textContent =
+            shuttle.speed > 0.05 ? `${shuttle.id}  ${shuttle.speed.toFixed(2)} m/s` : shuttle.id
+          node.label.setAttribute('class', shuttle.speed > 0.05 ? 'tag live' : 'tag')
+
+          if (shuttle.pallet) {
+            const carried = { x: shuttle.x, y: base + DECK_TOP }
+            const target =
+              shuttle.destination && shuttle.destination.startsWith('RCK')
+                ? slotPlace(shuttle.destination)
+                : carried
+            place(
+              shuttle.pallet,
+              mix(carried.x, target.x, shuttle.transfer),
+              mix(carried.y, target.y, shuttle.transfer),
+            )
+          } else if (shuttle.origin && shuttle.origin.startsWith('RCK') && shuttle.transfer > 0) {
+            picking.set(shuttle.origin, {
+              x: shuttle.x,
+              y: base + DECK_TOP,
+              transfer: shuttle.transfer,
+            })
+          }
+        }
+
+        for (const slot of scene.slots) {
+          cells.get(slot.id).setAttribute('data-full', frame.slots[slot.id] ? '1' : '0')
+        }
+
+        for (const [slotId, pallet] of Object.entries(frame.slots)) {
+          const resting = slotPlace(slotId)
+          const grab = picking.get(slotId)
+          const target = grab
+            ? { x: mix(resting.x, grab.x, grab.transfer), y: mix(resting.y, grab.y, grab.transfer) }
+            : resting
+          place(pallet, target.x, target.y)
+        }
+
+        for (const [id, node] of palletNodes) {
+          if (seen.has(id)) continue
+          palletNodes.delete(id)
+          node.group.style.opacity = '0'
+          node.group.style.transition = 'opacity 220ms ease-out'
+          setTimeout(() => node.group.remove(), 260)
+        }
+
+        document.getElementById('m-in').textContent = frame.received
+        document.getElementById('m-stock').textContent = frame.stored
+        document.getElementById('m-cap').textContent = `/${frame.capacity}`
+        document.getElementById('m-out').textContent = frame.shipped
+        document.getElementById('m-rate').innerHTML = `${Math.round(frame.throughput)}<small>pal/h</small>`
+        document.getElementById('m-gauge').style.transform = `scaleX(${frame.stored / frame.capacity})`
+
+        applySpeed(frame.factor, frame.running)
+        pushLines(frame.lines)
+      }
+
+      const consoleNode = document.getElementById('console')
+      const buffer = []
+      const hidden = new Set()
+
+      const draw = () => {
+        consoleNode.innerHTML = ''
+        for (const line of buffer) {
+          if (hidden.has(line.kind)) continue
+          const row = document.createElement('div')
+          row.dataset.kind = line.kind
+          row.textContent = line.text
+          consoleNode.appendChild(row)
+        }
+        consoleNode.scrollTop = consoleNode.scrollHeight
+      }
+
+      const pushLines = (lines) => {
+        if (lines.length === 0) return
+        buffer.push(...lines)
+        while (buffer.length > 300) buffer.shift()
+        const stuck = consoleNode.scrollHeight - consoleNode.scrollTop - consoleNode.clientHeight < 40
+        for (const line of lines) {
+          if (hidden.has(line.kind)) continue
+          const row = document.createElement('div')
+          row.dataset.kind = line.kind
+          row.textContent = line.text
+          consoleNode.appendChild(row)
+        }
+        while (consoleNode.childElementCount > 300) consoleNode.firstElementChild.remove()
+        if (stuck) consoleNode.scrollTop = consoleNode.scrollHeight
+      }
+
+      document.getElementById('filters').addEventListener('click', (event) => {
+        const button = event.target.closest('button')
+        if (!button) return
+        const kind = button.dataset.kind
+        const on = button.dataset.on === '1'
+        button.dataset.on = on ? '0' : '1'
+        if (on) hidden.add(kind)
+        else hidden.delete(kind)
+        draw()
+      })
+
+      const FACTORS = [1, 2, 5, 10]
+      const thumb = document.getElementById('thumb')
+      const speedButtons = [...document.querySelectorAll('#speeds button')]
+      const pauseIcon = document.getElementById('pause-icon')
+
+      const applySpeed = (factor, running) => {
+        const index = Math.max(0, FACTORS.indexOf(factor))
+        thumb.style.transform = `translateX(${index * 44}px)`
+        speedButtons.forEach((button, at) => {
+          button.dataset.on = at === index ? '1' : '0'
+        })
+        pauseIcon.innerHTML = running
+          ? '<rect x="1.5" y="1" width="3" height="10" rx="0.8"/><rect x="7.5" y="1" width="3" height="10" rx="0.8"/>'
+          : '<path d="M2 1 L11 6 L2 11 Z"/>'
+      }
+
+      const control = (query) => fetch(`/control?${query}`)
+
+      document.getElementById('speeds').addEventListener('click', (event) => {
+        const button = event.target.closest('button')
+        if (button) control(`factor=${button.dataset.factor}`)
+      })
+
+      let running = true
+      document.getElementById('pause').addEventListener('click', () => {
+        running = !running
+        control(`running=${running ? 1 : 0}`)
+      })
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === ' ') {
+          event.preventDefault()
+          running = !running
+          control(`running=${running ? 1 : 0}`)
+        }
+        const index = ['1', '2', '3', '4'].indexOf(event.key)
+        if (index >= 0) control(`factor=${FACTORS[index]}`)
+      })
+
+      fetch('/scene')
+        .then((response) => response.json())
+        .then((data) => {
+          buildScene(data)
+          const source = new EventSource('/stream')
+          source.onmessage = (event) => {
+            const frame = JSON.parse(event.data)
+            running = frame.running
+            render(frame)
+          }
+        })
+    </script>
+  </body>
+</html>

@@ -1,18 +1,13 @@
 {
-  "name": "navette",
+  "name": "navette-installation",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Émulation de l'installation : convoyeurs, aiguillages, points d'identification",
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts",
-    "sim": "tsx src/simulator/main.ts",
-    "build": "tsc",
+    "installation": "tsx src/installation/main.ts",
     "check": "tsc --noEmit",
     "test": "tsx --test \"src/**/*.test.ts\""
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^26.2.0",
